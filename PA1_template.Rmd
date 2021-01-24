@@ -1,25 +1,92 @@
 ---
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
+title: "Reproducible Research Project 1"
+author: "Angelica Fonseca"
+date: "23/1/2021"
+output: html_document
 ---
-
-
 ## Loading and preprocessing the data
 
+```{r Downloading and reading dataset, echo=TRUE}
+dataurl <- 'https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip'
 
+#Download Data
+if(!file.exists("activity.csv")){
+        download.file(dataurl, destfile = 'repdata%2Fdata%2Factivity.zip', 
+                      mode = "wb")
+        unzip(zipfile = 'repdata%2Fdata%2Factivity.zip')
+}
 
+#Read Data
+outcomes <- read.csv("activity.csv", header = TRUE, sep = ",", na.strings = "NA")
+
+#First data of dataset
+head(outcomes)
+#Last data of dataset
+tail(outcomes)
+```
 ## What is mean total number of steps taken per day?
 
+```{r Mean steps per day}
+#Histogram
+Mean_steps_per_day <- aggregate(steps~date, outcomes, sum)
+hist(Mean_steps_per_day$steps, main = 'Frequency of steps per day', 
+     xlab = 'Steps', col = "lightsteelblue", ylim = c(0,15), 
+     breaks =seq(0,25000, by=1000))
 
-
+#Mean
+mean(Mean_steps_per_day$steps)
+#Median
+median(Mean_steps_per_day$steps)
+```
 ## What is the average daily activity pattern?
 
+```{r Average daily activity pattern}
+Average_steps <- aggregate(steps~interval, outcomes, mean)
+plot(Average_steps$interval, Average_steps$steps, type = 'l', 
+     main = 'Daily activity', xlab = 'Interval (5 min each one)', 
+     ylab = 'Average number of steps', col = "lightsteelblue", lwd = 3 )
 
+#Interval that, on average, contains maximum number of steps
+Average_steps$interval[which.max((Average_steps$steps))]
+
+```
 
 ## Imputing missing values
 
+```{r Missing values}
+#Total number of NA values in the dataset
+sum(is.na(outcomes$steps))
 
+# Mean of NA values in the dataset
+Percent_of_NA <- (mean(is.na(outcomes$steps)))*100
+Percent_of_NA #The percent of NA values is high
+
+#Cleaning the data set 
+clean_outcomes <- na.omit(outcomes)
+
+#First data of the clean dataset
+head(clean_outcomes)
+
+#Last data of the clean dataset
+tail(clean_outcomes)
+
+#Histogram of the total number of steps taken each day after missing values are 
+#imputed
+
+Clean_mean_steps_per_day <- aggregate(steps~date, clean_outcomes, sum)
+hist(Clean_mean_steps_per_day$steps, main = 'Frequency of steps per day', 
+     xlab = 'Steps', col = "lightsteelblue", ylim = c(0,15), 
+     breaks = seq(0,25000, by=1000))
+#Mean
+mean(Clean_mean_steps_per_day$steps)
+#Median
+median(Clean_mean_steps_per_day$steps)
+```
 
 ## Are there differences in activity patterns between weekdays and weekends?
+
+```{r Difference of activity between weekdays and weekends}
+
+
+```
+
