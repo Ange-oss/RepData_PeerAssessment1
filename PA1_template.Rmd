@@ -8,13 +8,15 @@ output: html_document
 
 ## What is mean total number of steps taken per day?
 
-```{r Mean steps per day}
+```{r Mean steps per day, echo = TRUE}
 
+#Library needed
 library(ggplot2)
+
+#Daset URL
 dataurl <- 'https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip'
 
 #Download Data
-
 if(!file.exists("activity.csv")){
         download.file(dataurl, destfile = 'repdata%2Fdata%2Factivity.zip', 
                       mode = "wb")
@@ -22,10 +24,11 @@ if(!file.exists("activity.csv")){
 }
 
 #Read Data
-
 outcomes <- read.csv("activity.csv", header = TRUE, sep = ",", na.strings = "NA" )
 
+#First data of dataset
 head(outcomes)
+#last data of dataset
 tail(outcomes)
 
 #Histogram
@@ -42,19 +45,26 @@ median(Mean_steps_per_day$steps)
 ```
 ## What is the average daily activity pattern?
 
-```{r Average daily activity pattern}
+```{r Average daily activity pattern, echo = TRUE}
 Average_steps <- aggregate(steps~interval, outcomes, mean, na.rm = FALSE)
 plot(Average_steps$interval, Average_steps$steps, type = 'l', 
      main = 'Daily activity', xlab = 'Interval (5 min each one)', 
-     ylab = 'Average number of steps', col = "lightsteelblue", lwd = 3 )
+     ylab = 'Average of steps', col = "lightsteelblue", lwd = 3 )
+
+#Mean
+mean(Average_steps$steps)
+
+#Median
+median(Average_steps$steps)
 
 #Interval that, on average, contains maximum number of steps
 Average_steps$interval[which.max((Average_steps$steps))]
+
 ```
 
 ## Imputing missing values
 
-```{r Missing values}
+```{r Missing values, echo = TRUE}
 
 #Total number of NA values in the dataset
 sum(is.na(outcomes$steps))
@@ -69,7 +79,6 @@ Percent_of_NA #The percent of NA values is high
 outcomes2 <- aggregate(steps~interval,outcomes,mean)
 
 #Set NA values like de mean value for each interval
-
 outcomes$steps[is.na(outcomes$steps)==TRUE] <-  outcomes2$steps #mean(outcomes$steps, na.rm=TRUE)
 
 #Create a new dataset 
@@ -90,7 +99,7 @@ median(Mean_steps_per_day2$steps)
 
 ## Are there differences in activity patterns between weekdays and weekends?
 
-```{r Difference of activity between weekdays and weekends}
+```{r Difference of activity between weekdays and weekends, echo = TRUE}
 
 #function for diffenrenciate between weekdays and weekend
 wk_function <- function(wk) {
@@ -114,8 +123,8 @@ steps_by_wk <- aggregate(steps~interval+day,outcomes,mean)
 
 ggplot(steps_by_wk, aes(interval,steps)) +
         geom_line(stat = 'identity') + 
-        facet_wrap(day~.)  + 
-        labs(x= 'Interval (5 min each one)', y = 'Average number of steps') + 
-        ggtitle("diffenrence of steps between weekdays and weekend")
+        facet_wrap(.~day, ncol = 1, nrow = 2)  + 
+        labs(x= 'Interval (5 min each one)', y = 'Average of steps') + 
+        ggtitle("Diffenrence of steps between weekdays and weekend")
 
 ```
