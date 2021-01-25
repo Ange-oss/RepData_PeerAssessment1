@@ -4,56 +4,58 @@ author: "Angelica Fonseca"
 date: "23/1/2021"
 output: html_document
 ---
-## Loading and preprocessing the data
 
-```{r Downloading and reading dataset, echo=TRUE}
-dataurl <- 'https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip'
 
-#Download Data
-if(!file.exists("activity.csv")){
-        download.file(dataurl, destfile = 'repdata%2Fdata%2Factivity.zip', 
-                      mode = "wb")
-        unzip(zipfile = 'repdata%2Fdata%2Factivity.zip')
-}
-
-#Read Data
-outcomes <- read.csv("activity.csv", header = TRUE, sep = ",", na.strings = "NA")
-
-#First data of dataset
-head(outcomes)
-#Last data of dataset
-tail(outcomes)
-```
 ## What is mean total number of steps taken per day?
 
 ```{r Mean steps per day}
+
+library(ggplot2)
+dataurl <- 'https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip'
+
+#Download Data
+
+if(!file.exists("activity.csv")){
+        download.file(dataurl, destfile = 'repdata%2Fdata%2Factivity.zip', 
+                      mode = "wb")
+        unzip(zipfile = 'repdata%2Fdata%2Factivity.zip' )
+}
+
+#Read Data
+
+outcomes <- read.csv("activity.csv", header = TRUE, sep = ",", na.strings = "NA" )
+
+head(outcomes)
+tail(outcomes)
+
 #Histogram
-Mean_steps_per_day <- aggregate(steps~date, outcomes, sum)
+Mean_steps_per_day <- aggregate(steps~date, outcomes, sum, na.rm = FALSE)
 hist(Mean_steps_per_day$steps, main = 'Frequency of steps per day', 
      xlab = 'Steps', col = "lightsteelblue", ylim = c(0,15), 
      breaks =seq(0,25000, by=1000))
 
 #Mean
 mean(Mean_steps_per_day$steps)
+
 #Median
 median(Mean_steps_per_day$steps)
 ```
 ## What is the average daily activity pattern?
 
 ```{r Average daily activity pattern}
-Average_steps <- aggregate(steps~interval, outcomes, mean)
+Average_steps <- aggregate(steps~interval, outcomes, mean, na.rm = FALSE)
 plot(Average_steps$interval, Average_steps$steps, type = 'l', 
      main = 'Daily activity', xlab = 'Interval (5 min each one)', 
      ylab = 'Average number of steps', col = "lightsteelblue", lwd = 3 )
 
 #Interval that, on average, contains maximum number of steps
 Average_steps$interval[which.max((Average_steps$steps))]
-
 ```
 
 ## Imputing missing values
 
 ```{r Missing values}
+
 #Total number of NA values in the dataset
 sum(is.na(outcomes$steps))
 
@@ -61,32 +63,59 @@ sum(is.na(outcomes$steps))
 Percent_of_NA <- (mean(is.na(outcomes$steps)))*100
 Percent_of_NA #The percent of NA values is high
 
-#Cleaning the data set 
-clean_outcomes <- na.omit(outcomes)
+# Imputing missing values with the mean of each interval
 
-#First data of the clean dataset
-head(clean_outcomes)
+#Create a dataset with the steps mean for each interval
+outcomes2 <- aggregate(steps~interval,outcomes,mean)
 
-#Last data of the clean dataset
-tail(clean_outcomes)
+#Set NA values like de mean value for each interval
 
-#Histogram of the total number of steps taken each day after missing values are 
-#imputed
+outcomes$steps[is.na(outcomes$steps)==TRUE] <-  outcomes2$steps #mean(outcomes$steps, na.rm=TRUE)
 
-Clean_mean_steps_per_day <- aggregate(steps~date, clean_outcomes, sum)
-hist(Clean_mean_steps_per_day$steps, main = 'Frequency of steps per day', 
-     xlab = 'Steps', col = "lightsteelblue", ylim = c(0,15), 
-     breaks = seq(0,25000, by=1000))
+#Create a new dataset 
+Mean_steps_per_day2 <- aggregate(steps~date,outcomes,sum)
+
+#Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day. Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?
+
+#Historam
+hist(Mean_steps_per_day2$steps, main = 'Frequency of steps per day', 
+     xlab = 'Steps', col = "lightsteelblue",  ylim = c(0,20), breaks = seq(0,25000, by=1000))
+
 #Mean
-mean(Clean_mean_steps_per_day$steps)
+mean(Mean_steps_per_day2$steps)
+
 #Median
-median(Clean_mean_steps_per_day$steps)
+median(Mean_steps_per_day2$steps)
 ```
 
 ## Are there differences in activity patterns between weekdays and weekends?
 
 ```{r Difference of activity between weekdays and weekends}
 
+#function for diffenrenciate between weekdays and weekend
+wk_function <- function(wk) {
+        day_date <- weekdays(as.Date(wk, '%Y-%m-%d'))
+        if  ((day_date == 'sábado' || day_date == 'domingo')) {
+                x <- 'Weekend'
+        } 
+        else {
+                x <- 'Weekday'
+        }
+        x
+}
+
+#Add a new column to the dataframe
+outcomes$day <- as.factor(sapply(outcomes$date, wk_function))
+
+#Aggregate mean of steps by Interval and Day
+steps_by_wk <- aggregate(steps~interval+day,outcomes,mean)
+
+#Panel plot comparing the average number of steps taken per 5-minute interval across weekdays and weekends
+
+ggplot(steps_by_wk, aes(interval,steps)) +
+        geom_line(stat = 'identity') + 
+        facet_wrap(day~.)  + 
+        labs(x= 'Interval (5 min each one)', y = 'Average number of steps') + 
+        ggtitle("diffenrence of steps between weekdays and weekend")
 
 ```
-
